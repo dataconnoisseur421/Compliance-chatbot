@@ -19,3 +19,7 @@ data/cache/
 .DS_Store
 .idea/
 .vscode/
+
+# Local SQLite register (rebuilt from data/register/*.csv)
+data/db/
+*.egg-info/
