@@ -5,13 +5,22 @@ from __future__ import annotations
 import argparse
 import sys
 from datetime import date
+from pathlib import Path
 
+from pypdf import PdfReader
 from sqlalchemy import select
 
 from .checks import ERROR, INFO, WARN, check_register, has_errors
 from .db import PROJECT_ROOT
 from .models import REVIEW_OUTCOMES, STATUSES, Document, DocumentVersion
-from .register import RegisterError, open_register, rebuild_database, record_review, review_schedule
+from .register import (
+    RegisterError,
+    open_register,
+    rebuild_database,
+    record_review,
+    review_schedule,
+    sha256_of,
+)
 
 
 def _table(headers: list[str], rows: list[list[str]]) -> str:
@@ -82,6 +91,17 @@ def cmd_review(args) -> int:
     return 0
 
 
+def cmd_fingerprint(args) -> int:
+    path = Path(args.file)
+    if not path.is_file():
+        print(f"error: {path} not found", file=sys.stderr)
+        return 2
+    print(f"sha256={sha256_of(path)}")
+    print(f"page_count={len(PdfReader(str(path)).pages)}")
+    print(f"file_size_bytes={path.stat().st_size}")
+    return 0
+
+
 def _iso(value: str) -> date:
     try:
         return date.fromisoformat(value)
@@ -119,6 +139,10 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--reviewer", default="")
     r.add_argument("--notes", default="")
     r.set_defaults(func=cmd_review)
+
+    f = sub.add_parser("fingerprint", help="Print the SHA-256, page count and size to paste into versions.csv.")
+    f.add_argument("file")
+    f.set_defaults(func=cmd_fingerprint)
 
     args = p.parse_args(argv)
     try:

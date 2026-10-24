@@ -101,3 +101,14 @@ def test_migrated_database_rejects_bad_documents(migrated):
         conn.execute(text(_DOC.replace("'d'", "'d2'")), {"t": "memo"})  # unknown doc_type
     with pytest.raises(IntegrityError), migrated.begin() as conn:
         conn.execute(text("UPDATE documents SET review_interval_days = 0"))
+
+
+def test_cli_fingerprint_matches_registered_hash(capsys):
+    from compliance_assistant.db import PROJECT_ROOT
+    from compliance_assistant.register import read_csv
+
+    row = read_csv(PROJECT_ROOT / "data/register/versions.csv")[0]
+    assert main(["fingerprint", str(PROJECT_ROOT / row["file_path"])]) == 0
+    out = capsys.readouterr().out
+    assert f"sha256={row['sha256']}" in out and f"page_count={row['page_count']}" in out
+    assert main(["fingerprint", "no-such-file.pdf"]) == 2
