@@ -1,0 +1,23 @@
+slug,title,short_name,reference_no,issuer,doc_type,category,source_url,review_interval_days,notes
+sfa-2001,Securities and Futures Act 2001,SFA,Securities and Futures Act 2001,Parliament of Singapore,act,statutes,,30,"Core statute. Part 4 (CMS licensing), Part 5 (books, customer assets, audit), Part 6 (conduct), Part 13 (offers incl. CIS)."
+sf-lcb-regs,Securities and Futures (Licensing and Conduct of Business) Regulations,SF(LCB)R,Rg 10,Monetary Authority of Singapore,regulations,statutes,,30,
+sf-lcb-amendment-2-2024,Securities and Futures (Licensing and Conduct of Business) (Amendment No. 2) Regulations 2024,SF(LCB)(A2)R 2024,S 618/2024,Monetary Authority of Singapore,amending_instrument,statutes,,30,Amends regulation 12 and the Second Schedule of SF(LCB)R. Now incorporated in the consolidated Regulations.
+sf-fmr-regs,Securities and Futures (Financial and Margin Requirements for Holders of Capital Markets Services Licences) Regulations,SF(FMR)R,Rg 13,Monetary Authority of Singapore,regulations,statutes,,30,
+fsma-2022,Financial Services and Markets Act 2022,FSMA,No. 18 of 2022,Parliament of Singapore,act,statutes,,30,"File is the as-enacted text (Acts Supplement, 11 May 2022). Not confirmed to be the current consolidated version. s.16 (AML) and s.29 (technology risk) underpin the MAS notices."
+companies-act-1967,Companies Act 1967,Companies Act,Companies Act 1967,Parliament of Singapore,act,statutes,,30,Very large (541 pages). Ingest last or by part so it does not dominate search results.
+sfa04-g05,Guidelines on Licensing and Conduct of Business for Fund Management Companies,FMC Licensing Guidelines,SFA 04-G05,Monetary Authority of Singapore,guidelines,licensing-conduct,,90,
+fsg-g01,Guidelines on Fit and Proper Criteria,Fit and Proper Guidelines,FSG-G01,Monetary Authority of Singapore,guidelines,licensing-conduct,,90,
+iac-guidelines,Guidelines on Individual Accountability and Conduct,IAC Guidelines,,Monetary Authority of Singapore,guidelines,licensing-conduct,,90,
+outsourcing-guidelines,Guidelines on Outsourcing (Financial Institutions other than Banks),Outsourcing Guidelines,,Monetary Authority of Singapore,guidelines,licensing-conduct,,90,
+internal-controls-guidelines,Guidelines on Risk Management Practices - Internal Controls,Internal Controls Guidelines,,Monetary Authority of Singapore,guidelines,licensing-conduct,,90,
+sfa04-n02,Notice SFA04-N02 on Prevention of Money Laundering and Countering the Financing of Terrorism - Capital Markets Intermediaries,AML/CFT Notice,SFA04-N02,Monetary Authority of Singapore,notice,aml-cft,,90,
+sfa04-n02-guidelines,Guidelines to MAS Notice SFA04-N02 on Prevention of Money Laundering and Countering the Financing of Terrorism,AML/CFT Guidelines,Guidelines to SFA04-N02,Monetary Authority of Singapore,guidelines,aml-cft,,90,
+sfa04-n11,Notice on Reporting of Misconduct of Representatives by Holders of Capital Markets Services Licence and Exempt Financial Institutions,Misconduct Reporting Notice,SFA04-N11,Monetary Authority of Singapore,notice,reporting-ongoing,,90,
+fsm-n21,Notice on Technology Risk Management,TRM Notice,FSM-N21,Monetary Authority of Singapore,notice,reporting-ongoing,,90,
+fsm-n22,Notice on Cyber Hygiene,Cyber Hygiene Notice,FSM-N22,Monetary Authority of Singapore,notice,reporting-ongoing,,90,
+trm-guidelines,Technology Risk Management Guidelines,TRM Guidelines,,Monetary Authority of Singapore,guidelines,reporting-ongoing,,90,
+bcm-guidelines,Business Continuity Management Guidelines,BCM Guidelines,,Monetary Authority of Singapore,guidelines,reporting-ongoing,,90,
+cis-code,Code on Collective Investment Schemes,CIS Code,,Monetary Authority of Singapore,code,cis,,90,First issued 23 May 2002.
+cis-practice-note-1-2005,CIS Practice Note 1/2005: Administrative Procedures for Retail Schemes,CIS Practice Note 1/2005,CIS Practice Note 1/2005,Monetary Authority of Singapore,practice_note,cis,,90,
+lfmc-compliance-toolkit,"Compliance Toolkit for Licensed Fund Management Companies: Approvals, Notifications and Regulatory Submissions",LFMC Compliance Toolkit,,Monetary Authority of Singapore,toolkit,toolkit,,90,Excludes fund-level requirements (e.g. CIS Code) and reporting outside the SFA.
+sfa04-n17,Notice on Requirements in relation to Cross-Border Arrangements under the Securities and Futures (Exemption for Cross-Border Arrangements) (Foreign Related Corporations) Regulations 2021,Cross-Border (FRC) Notice,SFA04-N17,Monetary Authority of Singapore,notice,cross-border,,90,The underlying SF(ECBA)(FRC) Regulations 2021 are not yet in the register.
