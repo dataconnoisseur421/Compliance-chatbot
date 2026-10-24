@@ -112,3 +112,10 @@ def test_cli_fingerprint_matches_registered_hash(capsys):
     out = capsys.readouterr().out
     assert f"sha256={row['sha256']}" in out and f"page_count={row['page_count']}" in out
     assert main(["fingerprint", "no-such-file.pdf"]) == 2
+
+
+def test_build_creates_missing_database_folder(tmp_path):
+    """Regression: a fresh checkout has no data/db folder yet."""
+    url = f"sqlite:///{tmp_path / 'not' / 'yet' / 'there' / 'r.sqlite'}"
+    assert rebuild_database(url) == (22, 23)
+    assert (tmp_path / "not" / "yet" / "there" / "r.sqlite").is_file()

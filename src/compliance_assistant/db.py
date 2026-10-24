@@ -22,10 +22,15 @@ def default_database_url() -> str:
     return os.environ.get("DATABASE_URL") or f"sqlite:///{DEFAULT_SQLITE_PATH}"
 
 
-def get_engine(url: str | None = None) -> Engine:
-    url = url or default_database_url()
+def ensure_sqlite_dir(url: str) -> None:
+    """Create the folder for an on-disk SQLite file; SQLite will not do it itself."""
     if url.startswith("sqlite:///") and ":memory:" not in url:
         Path(url.removeprefix("sqlite:///")).parent.mkdir(parents=True, exist_ok=True)
+
+
+def get_engine(url: str | None = None) -> Engine:
+    url = url or default_database_url()
+    ensure_sqlite_dir(url)
     engine = create_engine(url, future=True)
 
     if engine.dialect.name == "sqlite":
@@ -53,4 +58,6 @@ def alembic_config(url: str | None = None) -> Config:
 
 def migrate(url: str | None = None, revision: str = "head") -> None:
     """Bring the database schema up to date."""
+    # Alembic opens its own connection, so the folder must exist before it runs.
+    ensure_sqlite_dir(url or default_database_url())
     command.upgrade(alembic_config(url), revision)
