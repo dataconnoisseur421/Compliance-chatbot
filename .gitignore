@@ -1,0 +1,21 @@
+# Secrets: never commit API keys
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Rebuildable artefacts (regenerate from the source documents)
+data/index/
+data/cache/
+*.sqlite-journal
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
