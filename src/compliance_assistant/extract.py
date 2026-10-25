@@ -24,7 +24,7 @@ class Line:
     text: str  # original indentation preserved, right-stripped; "" for a blank line
 
 
-LEADER_RE = re.compile(r"\.{4,}\s*\d+\s*$")  # "Heading ........ 12" (contents pages)
+LEADER_RE = re.compile(r"(?:\.{4,}|\s{6,})\s*\d{1,3}\s*$")  # "Heading ........ 12" (contents pages)
 AMEND_NOTE_RE = re.compile(r"^\s*\[[^\[\]]{1,160}\]\s*$")  # "[10/2013]", "[Amended on 30 May 2025]"
 PAGE_NUM_RE = re.compile(r"^\s*(?:page\s+)?\d{1,4}(?:\s+of\s+\d{1,4})?\s*$", re.IGNORECASE)
 BODY_START_RE = re.compile(r"^\s{0,8}1\.(?:—\(1\))?\s+\S")  # first section of an Act / Regulations

@@ -135,6 +135,29 @@ def cmd_embed(args) -> int:
     return 0
 
 
+def cmd_eval_search(args) -> int:
+    from .embed import get_embedder, search_hybrid
+    from .evaluate import load_eval, run_eval, summarise
+    from .index import INDEX_PATH, connect, search
+
+    if not INDEX_PATH.exists():
+        print("error: no index yet. Run 'register ingest' first.", file=sys.stderr)
+        return 2
+    conn = connect()
+    if args.model:
+        emb = get_embedder(args.model)
+        fn = lambda q, k: search_hybrid(conn, emb, q, k=k)
+    else:
+        fn = lambda q, k: search(conn, q, k=k)
+    outcomes = run_eval(fn, load_eval(), k=10)
+    for o in outcomes:
+        print(f"{o.row.id}  {o.row.style:10}  rank={o.rank or '-':>2}  {o.row.question[:70]}")
+    print()
+    for key, val in summarise(outcomes).items():
+        print(f"{key}: {val:.2f}")
+    return 0
+
+
 def cmd_search(args) -> int:
     from .index import INDEX_PATH, connect, search
     from .embed import get_embedder, search_hybrid
@@ -204,6 +227,10 @@ def main(argv: list[str] | None = None) -> int:
     em = sub.add_parser("embed", help="Compute vectors for every chunk (needs the 'embed' extra for real models).")
     em.add_argument("--model", default="BAAI/bge-small-en-v1.5", help="Model name, or 'hashing-512' for an offline test.")
     em.set_defaults(func=cmd_embed)
+
+    ev = sub.add_parser("eval-search", help="Score retrieval against data/eval/retrieval.csv (recall@k, MRR).")
+    ev.add_argument("--model", help="Embedding model for hybrid search; omit for keyword only.")
+    ev.set_defaults(func=cmd_eval_search)
 
     sr = sub.add_parser("search", help="Keyword search over in-force text.")
     sr.add_argument("question", nargs="+")

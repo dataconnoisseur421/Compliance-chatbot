@@ -11,7 +11,7 @@ import re
 import statistics
 from dataclasses import dataclass, field
 
-from .extract import Line, reflow
+from .extract import LEADER_RE, Line, reflow
 
 MAX_CHARS = 1800  # about 450 tokens
 
@@ -290,7 +290,7 @@ def _emit_section(out: list[Chunk], sec: _Section, label: str) -> None:
 DOTTED_RE = re.compile(r"^\s{0,14}(\d+(?:[.\-]\d+)+[A-Z]{0,2})\.?\s+(\S.*)$")
 INT_RE = re.compile(r"^\s{0,8}(\d{1,3}[A-Z]?)\s{2,}(\S.*)$")
 NUMHEAD_RE = re.compile(r"^\s{0,14}(\d{1,2}(?:[.\-]\d{1,2}){0,2})\.?\s+(\S.*)$")
-APPENDIX_RE = re.compile(r"^\s{0,14}(?:APPENDIX|Appendix|ANNEX|Annex|ANNEXURE|Annexure)\s+([A-Z0-9]{1,3})\b\s*[:\-–—]?\s*(.*)$")
+APPENDIX_RE = re.compile(r"^\s{0,14}(APPENDIX|Appendix|ANNEX|Annex|ANNEXURE|Annexure)\s+([A-Z0-9]{1,3})\b\s*[:\-–—]?\s*(.*)$")
 UNNUMBERED_DEPTH = 50
 FUNCTION_ENDINGS = {"the", "and", "to", "of", "a", "an", "in", "for", "or", "by", "with", "on", "that", "is", "be", "as"}
 
@@ -374,10 +374,11 @@ def chunk_paragraphs(lines: list[Line]) -> tuple[list[Chunk], dict]:
         nxt = _next_nonblank(lines, i)
 
         am = APPENDIX_RE.match(t)
-        if am and prev_blank and len(t.strip()) < 100:
+        if am and prev_blank and len(t.strip()) < 100 and not LEADER_RE.search(t):
             flush_unit(); flush_text()
-            stack = [(0, _clean_heading(f"Appendix {am.group(1)} {am.group(2)}"))]
-            prefix = f"App {am.group(1)} "
+            noun = "Annex" if am.group(1).lower().startswith("annex") else "Appendix"
+            stack = [(0, _clean_heading(f"{noun} {am.group(2)} {am.group(3)}"))]
+            prefix = f"{'Annex' if noun == 'Annex' else 'App'} {am.group(2)} "
             stats["headings"] += 1
             continue
 
