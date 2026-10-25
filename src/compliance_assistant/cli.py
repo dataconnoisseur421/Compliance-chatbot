@@ -102,6 +102,41 @@ def cmd_fingerprint(args) -> int:
     return 0
 
 
+def cmd_ingest(args) -> int:
+    from .extract import ExtractionError
+    from .index import ingest
+
+    try:
+        results = ingest()
+    except ExtractionError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    rows = [[r.slug, r.version_label, r.status, str(r.stats["chunks"]), str(r.stats["median_tokens"]),
+             f"{r.stats['pct_with_citation']:.0f}%", f"{r.stats['coverage']:.2f}"] for r in results]
+    print(_table(["document", "version", "status", "chunks", "med tok", "cited", "coverage"], rows))
+    print(f"\n{sum(int(r[3]) for r in rows)} chunks from {len(rows)} version(s) written to data/index/index.sqlite")
+    return 0
+
+
+def cmd_search(args) -> int:
+    from .index import INDEX_PATH, connect, search
+
+    if not INDEX_PATH.exists():
+        print("error: no index yet. Run 'register ingest' first.", file=sys.stderr)
+        return 2
+    conn = connect()
+    hits = search(conn, " ".join(args.question), k=args.k, scope=args.scope, include_superseded=args.superseded)
+    if not hits:
+        print("No matches.")
+        return 0
+    for n, h in enumerate(hits, start=1):
+        flag = "" if h.status == "in_force" else f"  [{h.status.upper()}]"
+        print(f"{n}. {h.citation}{flag}  ({h.via})")
+        print(f"   {h.heading_path[:100]}")
+        print("   " + h.text[: args.chars].replace("\n", " ") + ("..." if len(h.text) > args.chars else ""))
+    return 0
+
+
 def _iso(value: str) -> date:
     try:
         return date.fromisoformat(value)
@@ -139,6 +174,17 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--reviewer", default="")
     r.add_argument("--notes", default="")
     r.set_defaults(func=cmd_review)
+
+    ig = sub.add_parser("ingest", help="Extract, chunk and index every registered document (rebuilds the index).")
+    ig.set_defaults(func=cmd_ingest)
+
+    sr = sub.add_parser("search", help="Keyword search over in-force text.")
+    sr.add_argument("question", nargs="+")
+    sr.add_argument("-k", type=int, default=8)
+    sr.add_argument("--scope", choices=["core", "all"], default="core")
+    sr.add_argument("--superseded", action="store_true", help="Also search superseded versions.")
+    sr.add_argument("--chars", type=int, default=260)
+    sr.set_defaults(func=cmd_search)
 
     f = sub.add_parser("fingerprint", help="Print the SHA-256, page count and size to paste into versions.csv.")
     f.add_argument("file")
