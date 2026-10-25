@@ -113,6 +113,7 @@ def load_register(session: Session, reg_dir: Path = REGISTER_DIR) -> tuple[int, 
             category=row["category"].strip(),
             source_url=_blank_to_none(row.get("source_url")),
             review_interval_days=interval,
+            search_scope=(row.get("search_scope") or "core").strip(),
             notes=_blank_to_none(row.get("notes")),
         )
         session.add(doc)

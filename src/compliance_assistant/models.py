@@ -42,6 +42,7 @@ DOC_TYPES = (
 STATUSES = ("in_force", "superseded", "draft", "excluded")
 DATE_PRECISIONS = ("day", "month")
 REVIEW_OUTCOMES = ("confirmed_current", "update_needed", "superseded", "other")
+SEARCH_SCOPES = ("core", "extended")
 
 DEFAULT_WORKSPACE = "default"
 DEFAULT_REVIEW_INTERVAL_DAYS = 90
@@ -74,6 +75,7 @@ class Document(Base):
         UniqueConstraint("workspace_id", "slug", name="uq_documents_workspace_slug"),
         CheckConstraint(_in("doc_type", DOC_TYPES), name="doc_type_valid"),
         CheckConstraint("review_interval_days > 0", name="review_interval_positive"),
+        CheckConstraint(_in("search_scope", SEARCH_SCOPES), name="search_scope_valid"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -93,6 +95,11 @@ class Document(Base):
         nullable=False,
         default=DEFAULT_REVIEW_INTERVAL_DAYS,
         server_default=str(DEFAULT_REVIEW_INTERVAL_DAYS),
+    )
+    # "core" documents are searched by default; "extended" ones only when asked for
+    # (large, rarely relevant sources such as the Companies Act).
+    search_scope: Mapped[str] = mapped_column(
+        String(10), nullable=False, default="core", server_default="core"
     )
     notes: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(

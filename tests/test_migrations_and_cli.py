@@ -119,3 +119,18 @@ def test_build_creates_missing_database_folder(tmp_path):
     url = f"sqlite:///{tmp_path / 'not' / 'yet' / 'there' / 'r.sqlite'}"
     assert rebuild_database(url) == (22, 23)
     assert (tmp_path / "not" / "yet" / "there" / "r.sqlite").is_file()
+
+
+def test_migrated_database_rejects_unknown_search_scope(migrated):
+    with pytest.raises(IntegrityError), migrated.begin() as conn:
+        conn.execute(text("UPDATE documents SET search_scope = 'everything'"))
+
+
+def test_only_the_companies_act_is_extended_scope():
+    from compliance_assistant.register import open_register
+    from compliance_assistant.models import Document
+    from sqlalchemy import select
+
+    session = open_register()
+    extended = session.scalars(select(Document.slug).where(Document.search_scope == "extended")).all()
+    assert extended == ["companies-act-1967"]

@@ -10,13 +10,13 @@ import pytest
 from compliance_assistant.register import VERSION_FIELDS, write_csv
 
 DOC_FIELDS = ["slug", "title", "short_name", "reference_no", "issuer", "doc_type", "category",
-              "source_url", "review_interval_days", "notes"]
+              "source_url", "review_interval_days", "search_scope", "notes"]
 
 
 def doc_row(slug: str, **kw) -> dict:
     row = dict(slug=slug, title=f"Title {slug}", short_name=slug.upper(), reference_no="", issuer="MAS",
                doc_type="guidelines", category="test", source_url="https://example.invalid", review_interval_days="90",
-               notes="")
+               search_scope="core", notes="")
     row.update(kw)
     return row
 
