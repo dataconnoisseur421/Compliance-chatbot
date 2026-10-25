@@ -6,7 +6,9 @@ A retrieval-augmented assistant for Singapore fund management company compliance
 
 ## Status
 
-Step 1 of the build: the **document register**. It records which source documents the tool relies on, which edition of each is in force, what superseded what, and when each is next due for review. Search, answering and email drafting come in later steps.
+- **Step 1 – document register** (done): which source documents the tool relies on, which edition is in force, what superseded what, when each is next due for review.
+- **Step 2 – simple version** (done): extract and chunk each PDF by provision/paragraph, keyword + optional vector search over in-force text only, a retrieval test set, and `ask` for cited answers and client-email drafts.
+- **Later:** a layer that understands multi-part scenarios, asks clarifying questions, splits them into issues and synthesises one answer; a friendlier interface; hosting for testers.
 
 ## Quick start
 
@@ -20,6 +22,26 @@ register list       # all documents and versions
 register overdue    # in-force documents due for review (add --all for the full schedule)
 pytest              # run the tests
 ```
+
+Search and answering need **poppler** (`pdftotext`) to read the PDFs: `brew install poppler`, `apt install poppler-utils`, or the Windows build.
+
+```bash
+register ingest                       # extract + chunk + index every registered PDF -> data/index/index.sqlite
+register search "misconduct report deadline"           # keyword search, in-force text, cited
+register eval-search                  # score retrieval on data/eval/retrieval.csv (recall@k, MRR)
+
+# Better search with a local open-source embedding model (one-off ~130 MB download):
+pip install -e ".[embed]"
+register embed --model BAAI/bge-small-en-v1.5
+register eval-search --model BAAI/bge-small-en-v1.5     # compare with the keyword-only score above
+
+# Answers need a hosted model: pip install -e ".[llm]", put ANTHROPIC_API_KEY in .env (see .env.example)
+register ask "Within how many days must a misconduct report be filed?" --embed-model BAAI/bge-small-en-v1.5
+register ask --email --notes "client is a Cayman fund manager" "How do we report misconduct?"
+register ask --dry-run "..."          # show the passages that would be sent, without calling the model
+```
+
+The search index is a **separate, disposable file** (`data/index/`, not committed). It is rebuilt from the register and PDFs by `register ingest`; re-run `register embed` afterwards.
 
 ## How it is organised
 
@@ -70,9 +92,13 @@ Errors fail the check. Warnings flag things to look at. `-v` also lists missing 
 - **Dates.** Real `DATE` columns. Where a document only states a month, the first of the month is stored with `issue_date_precision = month`.
 - **Workspaces.** Documents carry a `workspace_id` (default `default`) so the tool can serve more than one user or firm later without a schema change.
 
+- **Status-aware retrieval.** Searches return in-force text only by default; `--superseded` includes retired editions, and `core` scope excludes reference material such as the Companies Act unless `--scope all`.
+- **Every answer cites numbered sources**, and the tool flags citations that do not match a retrieved passage. It does not yet check that a cited passage actually supports the sentence.
+
 ## Known gaps in the register
 
 - Source URLs are not yet filled in.
+- The FMC Licensing Guidelines (SFA 04-G05) refer to MAS Notice SFA04-N13 (risk-based capital), which is not in the library.
 - Not yet included: the SF(ECBA)(FRC) and (FO) Regulations 2021, Notice SFA04-N18, and licence conditions.
 - The Financial Services and Markets Act 2022 file is the as-enacted text; its currency against later amendments has not been verified.
 - Statutes with older "as at" dates (Companies Act, Financial and Margin Requirements Regulations: 26 Jan 2026) will need refreshing.

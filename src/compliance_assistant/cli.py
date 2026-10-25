@@ -158,6 +158,33 @@ def cmd_eval_search(args) -> int:
     return 0
 
 
+def cmd_ask(args) -> int:
+    from .answer import answer_question, format_sources, render
+    from .embed import get_embedder, search_hybrid
+    from .index import INDEX_PATH, connect
+    from .llm import AnthropicModel, LLMError, load_dotenv
+
+    if not INDEX_PATH.exists():
+        print("error: no index yet. Run 'register ingest' first.", file=sys.stderr)
+        return 2
+    load_dotenv()
+    question = " ".join(args.question)
+    conn = connect()
+    emb = get_embedder(args.embed_model) if args.embed_model else None
+    hits = search_hybrid(conn, emb, question, k=args.k, scope=args.scope)
+    if args.dry_run:
+        print(format_sources(hits))
+        return 0
+    try:
+        model = AnthropicModel(args.llm)
+    except LLMError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    ans = answer_question(question, hits, model, mode="email" if args.email else "answer", notes=args.notes or "")
+    print(render(ans))
+    return 0
+
+
 def cmd_search(args) -> int:
     from .index import INDEX_PATH, connect, search
     from .embed import get_embedder, search_hybrid
@@ -231,6 +258,17 @@ def main(argv: list[str] | None = None) -> int:
     ev = sub.add_parser("eval-search", help="Score retrieval against data/eval/retrieval.csv (recall@k, MRR).")
     ev.add_argument("--model", help="Embedding model for hybrid search; omit for keyword only.")
     ev.set_defaults(func=cmd_eval_search)
+
+    ak = sub.add_parser("ask", help="Answer a question from the library with citations (needs ANTHROPIC_API_KEY).")
+    ak.add_argument("question", nargs="+")
+    ak.add_argument("-k", type=int, default=8, help="How many passages to give the model.")
+    ak.add_argument("--scope", choices=["core", "all"], default="core")
+    ak.add_argument("--email", action="store_true", help="Draft a client email instead of an internal answer.")
+    ak.add_argument("--notes", help="Adviser notes for the email draft.")
+    ak.add_argument("--llm", help="Model name (default: ANSWER_MODEL from .env, else claude-sonnet-5-5).")
+    ak.add_argument("--embed-model", help="Embedding model for hybrid search; omit for keyword only.")
+    ak.add_argument("--dry-run", action="store_true", help="Show the passages that would be sent, without calling the model.")
+    ak.set_defaults(func=cmd_ask)
 
     sr = sub.add_parser("search", help="Keyword search over in-force text.")
     sr.add_argument("question", nargs="+")
