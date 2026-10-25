@@ -118,14 +118,37 @@ def cmd_ingest(args) -> int:
     return 0
 
 
+def cmd_embed(args) -> int:
+    from .embed import embed_index, get_embedder
+    from .index import INDEX_PATH, connect
+
+    if not INDEX_PATH.exists():
+        print("error: no index yet. Run 'register ingest' first.", file=sys.stderr)
+        return 2
+    try:
+        embedder = get_embedder(args.model)
+    except RuntimeError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    added = embed_index(connect(), embedder)
+    print(f"Embedded {added} chunk(s) with {embedder.name} (dim {embedder.dim}).")
+    return 0
+
+
 def cmd_search(args) -> int:
     from .index import INDEX_PATH, connect, search
+    from .embed import get_embedder, search_hybrid
 
     if not INDEX_PATH.exists():
         print("error: no index yet. Run 'register ingest' first.", file=sys.stderr)
         return 2
     conn = connect()
-    hits = search(conn, " ".join(args.question), k=args.k, scope=args.scope, include_superseded=args.superseded)
+    question = " ".join(args.question)
+    if args.model:
+        hits = search_hybrid(conn, get_embedder(args.model), question, k=args.k, scope=args.scope,
+                             include_superseded=args.superseded)
+    else:
+        hits = search(conn, question, k=args.k, scope=args.scope, include_superseded=args.superseded)
     if not hits:
         print("No matches.")
         return 0
@@ -178,11 +201,16 @@ def main(argv: list[str] | None = None) -> int:
     ig = sub.add_parser("ingest", help="Extract, chunk and index every registered document (rebuilds the index).")
     ig.set_defaults(func=cmd_ingest)
 
+    em = sub.add_parser("embed", help="Compute vectors for every chunk (needs the 'embed' extra for real models).")
+    em.add_argument("--model", default="BAAI/bge-small-en-v1.5", help="Model name, or 'hashing-512' for an offline test.")
+    em.set_defaults(func=cmd_embed)
+
     sr = sub.add_parser("search", help="Keyword search over in-force text.")
     sr.add_argument("question", nargs="+")
     sr.add_argument("-k", type=int, default=8)
     sr.add_argument("--scope", choices=["core", "all"], default="core")
     sr.add_argument("--superseded", action="store_true", help="Also search superseded versions.")
+    sr.add_argument("--model", help="Embedding model used by 'register embed' (enables hybrid search).")
     sr.add_argument("--chars", type=int, default=260)
     sr.set_defaults(func=cmd_search)
 

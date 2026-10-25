@@ -12,10 +12,13 @@ dependencies = [
     "sqlalchemy>=2.0,<2.1",
     "alembic>=1.13",
     "pypdf>=5",
+    "numpy>=1.26",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+embed = ["sentence-transformers>=3"]   # local open-source embeddings (BGE etc.); large download
+llm = ["anthropic>=0.40"]              # hosted Claude for answering
 
 [project.scripts]
 register = "compliance_assistant.cli:main"
